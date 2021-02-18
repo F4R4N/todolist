@@ -54,16 +54,18 @@ class TodoUpdateView(APIView):
 				if request.data['title'] in user_todo.title and request.data['title'] != todo.title:
 					return Response(status=status.HTTP_409_CONFLICT)
 			todo.title = request.data['title']
-		if 'description' in request.data:
+		elif 'description' in request.data:
 			todo.description = request.data['description']
-		if 'image' in request.data:
+		elif 'image' in request.data:
 			todo.image = request.data['image']
-		if 'is_active' in request.data:
+		elif 'is_active' in request.data:
 			todo.is_active = request.data['is_active']
-		if 'priority' in request.data:
+		elif 'priority' in request.data:
 			todo.priority = request.data['priority']
-		if 'send_email' in request.data:
+		elif 'send_email' in request.data:
 			todo.send_email = request.data['send_email']
+		else:
+			return Response(data={"detail": "no-data"}, status=status.HTTP_200_OK)
 		todo.save()
 		return Response(data={"detail": "updated"}, status=status.HTTP_200_OK)
 

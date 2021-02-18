@@ -6,3 +6,4 @@ api/migrations/
 auth/__pycache__/
 config/__pycache__/
 test*
+Frontend/

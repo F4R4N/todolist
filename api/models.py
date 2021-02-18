@@ -42,5 +42,5 @@ class Profile(models.Model):
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
 	image = models.ImageField(upload_to=user_image, default="profile/default/default.jpg")
 	def __str__(self):
-		return self.title
+		return self.user.username
 
