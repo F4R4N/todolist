@@ -5,6 +5,12 @@ from rest_framework.views import APIView
 from .serializer import TodoSerializer, UserSerializer
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
+
+class UserView(viewsets.ModelViewSet):
+	queryset = User.objects.all()
+	serializer_class = UserSerializer
+	permission_classes = (permissions.IsAdminUser, )
 
 class TodoGetView(generics.ListAPIView):
 	serializer_class = TodoSerializer
@@ -21,23 +27,23 @@ class TodoCreateView(APIView):
 	def post(self, request, format=None):
 		user = request.user
 		user_todos = Todo.objects.filter(user=user)
-		for user_todo in user_todos:
-			if request.data['title'] in user_todo.title:
-				return Response(status=status.HTTP_409_CONFLICT)
+		empty_fields = {}
+		message = "field value not provided"
+		keys = ['title', 'is_active', 'is_paused', 'is_visible', 'date', 'time']
+		for key in keys:
+			if not key in request.data:
+				empty_fields[key] = message
+		if len(empty_fields) != 0:
+			return Response(status=status.HTTP_400_BAD_REQUEST, data=empty_fields)
 		todo = Todo.objects.create(
 			title=request.data["title"],
 			user=user,
+			is_active=request.data['is_active'],
+			is_paused=request.data['is_paused'],
+			is_visible=request.data['is_visible'],
+			date=request.data['date'],
+			time=request.data['time']
 			)
-		if 'description' in request.data:
-			todo.description = request.data['description']
-		if 'image' in request.data:
-			todo.image = request.data['image']
-		if 'is_active' in request.data:
-			todo.is_active = request.data['is_active']
-		if 'priority' in request.data:
-			todo.priority = request.data['priority']
-		if 'send_email' in request.data:
-			todo.send_email = request.data['send_email']
 		todo.save()
 		return Response(data={"detail": "created"}, status=status.HTTP_200_OK)
 
@@ -50,22 +56,19 @@ class TodoUpdateView(APIView):
 		user_todos = Todo.objects.filter(user=user)
 		todo = get_object_or_404(Todo, key=key)
 		if 'title' in request.data:
-			for user_todo in user_todos:
-				if request.data['title'] in user_todo.title and request.data['title'] != todo.title:
-					return Response(status=status.HTTP_409_CONFLICT)
 			todo.title = request.data['title']
-		elif 'description' in request.data:
-			todo.description = request.data['description']
-		elif 'image' in request.data:
-			todo.image = request.data['image']
 		elif 'is_active' in request.data:
-			todo.is_active = request.data['is_active']
-		elif 'priority' in request.data:
-			todo.priority = request.data['priority']
-		elif 'send_email' in request.data:
-			todo.send_email = request.data['send_email']
+			todo.description = request.data['is_active']
+		elif 'is_paused' in request.data:
+			todo.image = request.data['is_paused']
+		elif 'is_visible' in request.data:
+			todo.is_active = request.data['is_visible']
+		elif 'date' in request.data:
+			todo.priority = request.data['date']
+		elif 'time' in request.data:
+			todo.send_email = request.data['time']
 		else:
-			return Response(data={"detail": "no-data"}, status=status.HTTP_200_OK)
+			return Response(data={"detail": "all fields was empty"}, status=status.HTTP_400_BAD_REQUEST)
 		todo.save()
 		return Response(data={"detail": "updated"}, status=status.HTTP_200_OK)
 
