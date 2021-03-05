@@ -5,12 +5,11 @@ from .models import Todo
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = ("id", "username", "first_name", "last_name", "email", "image")
-	image = serializers.ImageField(source="profile.image")
+		fields = ("id", "key", "username", "first_name", "last_name", "email", "image", "is_active")
+	key = serializers.CharField(source="profile.key")
+	image = serializers.ImageField(source="profile.image.url")
 
 class TodoSerializer(serializers.ModelSerializer):
-	user = UserSerializer()
 	class Meta:
 		model = Todo
-		fields = ("key", "title", "description", "image", "user", "is_active", "priority", "send_email")
-
+		fields = ("key", "title", "is_active", "is_paused", "is_visible", 'date', 'time')
