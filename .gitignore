@@ -7,3 +7,4 @@ auth/__pycache__/
 config/__pycache__/
 test*
 Frontend/
+config/config.py
