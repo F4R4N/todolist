@@ -7,7 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
 		model = User
 		fields = ("id", "key", "username", "first_name", "last_name", "email", "image", "is_active")
 	key = serializers.CharField(source="profile.key")
-	image = serializers.ImageField(source="profile.image.url")
+	image = serializers.ImageField(source="profile.image")
 
 class TodoSerializer(serializers.ModelSerializer):
 	class Meta:
