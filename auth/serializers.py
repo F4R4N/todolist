@@ -5,6 +5,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from api.models import Profile
 
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from rest_framework_simplejwt.settings import api_settings
+from django.contrib.auth.models import update_last_login
+
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     password1 = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -14,8 +19,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'password1', 'password2', 'email', 'first_name', 'last_name')
         extra_kwargs = {
-            'first_name': {'required': True},
-            'last_name': {'required': True},
+            'first_name': {'required': False},
+            'last_name': {'required': False},
         }
 
     def validate(self, attrs):
@@ -28,10 +33,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create(
             username=validated_data['username'],
             email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
         )
-
+        if not 'first_name' in validated_data:
+            user.first_name = ""
+        else:
+            user.first_name = validated_data['first_name']
+        if not 'last_name' in validated_data:
+            user.last_name = ""
+        else:
+            user.last_name = validated_data['last_name']
         user.set_password(validated_data['password1'])
         profile = Profile.objects.create(user=user)
     
@@ -40,96 +50,21 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         return user
 
-
-class ChangePasswordSerializer(serializers.ModelSerializer):
-    password1 = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
-    old_password = serializers.CharField(write_only=True, required=True)
-
-    class Meta:
-        model = User
-        fields = ('old_password', 'password1', 'password2')
+class UserLoginSerializer(TokenObtainSerializer):
+    @classmethod
+    def get_token(cls, user):
+        return RefreshToken.for_user(user)
 
     def validate(self, attrs):
-        if attrs['password1'] != attrs['password2']:
-            raise serializers.ValidationError({'password1': "password fields dont match !"})
+        data = super().validate(attrs)
 
-        return attrs
+        refresh = self.get_token(self.user)
 
-    def validate_old_password(self, value):
-        user = self.context['request'].user
-        if not user.check_password(value):
-            raise serializers.ValidationError({"old_password": "Old password is not correct !"})
+        data['refresh'] = str(refresh)
+        data['access'] = str(refresh.access_token)
+        data['user'] = {'key': self.user.profile.key, 'username': self.user.username, 'email': self.user.email, 'first_name': self.user.first_name, 'image': self.user.profile.image.url, 'last_name': self.user.last_name}
 
-        return value
+        if api_settings.UPDATE_LAST_LOGIN:
+            update_last_login(None, self.user)
 
-    def update(self, instance, validated_data):
-        user = self.context['request'].user
-        if user.pk != instance.pk:
-            raise serializers.ValidationError({"authorize": "You dont have permission for this user !"})
-
-        instance.set_password(validated_data['password1'])
-        instance.save()
-
-        return instance
-
-
-class UpdateUserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(required=False)
-
-    class Meta:
-        model = User
-        fields = ('username', 'first_name', 'last_name', 'email')
-        extra_kwargs = {
-            'username': {'required': False},
-            'first_name': {'required': False},
-            'last_name': {'required': False},
-        }
-
-    def validate_email(self, value):
-        user = self.context['request'].user
-        if User.objects.exclude(pk=user.pk).filter(email=value).exists():
-            raise serializers.ValidationError({"email": "this email is already in use !"})
-
-        return value
-
-    def validate_username(self, value):
-        user = self.context['request'].user
-        if User.objects.exclude(pk=user.pk).filter(username=value).exists():
-            raise serializers.ValidationError({"username": "this username is not available !"})
-        return value
-
-    def update(self, instance, validated_data):
-        user = self.context['request'].user
-        if user.pk != instance.pk:
-            raise serializers.ValidationError({"authorize": "you dont have permission for this user !"})
-        if 'first_name' in validated_data:
-            instance.first_name = validated_data['first_name']
-        if 'last_name' in validated_data:
-            instance.last_name = validated_data['last_name']
-        if 'email' in validated_data:
-            instance.email = validated_data['email']
-        if 'username' in validated_data:
-            instance.username = validated_data['username']
-
-        instance.save()
-        return instance
-
-
-class UpdateUserImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ("image",)
-        extra_kwargs = {'image': {'required': True}, }
-
-    def update(self, instance, validated_data):
-        user = self.context['request'].user
-        if user.pk != instance.pk:
-            raise serializers.ValidationError({"authorize": "you dont have permission for this user !"})
-        if 'image' in validated_data:
-            instance.image = validated_data['image']
-            instance.user = user
-            instance.save()
-            return instance
-        else:
-            raise serializers.ValidationsError({'not valid': 'the image field data is missing'})
+        return data
