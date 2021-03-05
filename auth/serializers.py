@@ -60,8 +60,7 @@ class UserLoginSerializer(TokenObtainSerializer):
 
         refresh = self.get_token(self.user)
 
-        data['refresh'] = str(refresh)
-        data['access'] = str(refresh.access_token)
+        data['tokens'] = {'refresh': str(refresh), "access": str(refresh.access_token)}
         data['user'] = {'key': self.user.profile.key, 'username': self.user.username, 'email': self.user.email, 'first_name': self.user.first_name, 'image': self.user.profile.image.url, 'last_name': self.user.last_name}
 
         if api_settings.UPDATE_LAST_LOGIN:
