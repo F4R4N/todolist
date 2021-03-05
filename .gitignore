@@ -4,6 +4,7 @@ media/*
 api/__pycache__/
 api/migrations/
 auth/__pycache__/
+auth/migrations/
 config/__pycache__/
 test*
 Frontend/
