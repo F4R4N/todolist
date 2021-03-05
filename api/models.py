@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from datetime import datetime
 import random
 import string
+from datetime import datetime
 def todo_image(instance, filename):
 	return "todo/{0}/{1}.jpg".format(instance.user.username, instance.title)
 
@@ -20,6 +21,7 @@ def random_key():
 		if key == todo.key:
 			raise "Error::try again later!"
 	return key
+
 class Todo(models.Model):
 	PRIORITY_CHOICES = [
 		('high', "High"),
@@ -32,15 +34,23 @@ class Todo(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
 	image = models.ImageField(upload_to=todo_image, default='todo/default/default.jpg')
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
-	is_active = models.BooleanField(default=True)
+	is_active = models.BooleanField(default=True, blank=False, null=False)
 	priority = models.CharField(max_length=6, choices=PRIORITY_CHOICES, default='medium')
 	send_email = models.BooleanField(default=False)
+	is_paused = models.BooleanField(blank=False, null=False)
+	is_visible = models.BooleanField(blank=False, null=False)
+	date = models.CharField(max_length=50, blank=False, null=False)
+	time = models.CharField(max_length=50, blank=False, null=False)
 	
+	def __str__(self):
+		return self.title
 
 
 class Profile(models.Model):
+	key = models.CharField(max_length=15, default=random_key, unique=True, blank=False, null=False)
 	user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
 	image = models.ImageField(upload_to=user_image, default="profile/default/default.jpg")
+	
 	def __str__(self):
 		return self.user.username
 
