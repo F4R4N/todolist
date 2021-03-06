@@ -6,6 +6,7 @@ from .serializer import TodoSerializer, UserSerializer
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+import json
 
 class UserView(viewsets.ModelViewSet):
 	queryset = User.objects.all()
@@ -58,15 +59,15 @@ class TodoUpdateView(APIView):
 		if 'title' in request.data:
 			todo.title = request.data['title']
 		elif 'is_active' in request.data:
-			todo.description = request.data['is_active']
+			todo.is_active = request.data['is_active']
 		elif 'is_paused' in request.data:
-			todo.image = request.data['is_paused']
+			todo.is_paused = request.data['is_paused']
 		elif 'is_visible' in request.data:
-			todo.is_active = request.data['is_visible']
+			todo.is_visible = request.data['is_visible']
 		elif 'date' in request.data:
-			todo.priority = request.data['date']
+			todo.date = request.data['date']
 		elif 'time' in request.data:
-			todo.send_email = request.data['time']
+			todo.time = request.data['time']
 		else:
 			return Response(data={"detail": "all fields was empty"}, status=status.HTTP_400_BAD_REQUEST)
 		todo.save()
