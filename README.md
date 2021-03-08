@@ -1,6 +1,8 @@
 # todolist django rest framework
 a todolist api with django rest framework
 
+Backend of: [todo app](https://faez-todoapp.netlify.app)
+
 ## installation
 1. install python3 from <a href="https://www.python.or
 g/" target="_blank">here</a> 
