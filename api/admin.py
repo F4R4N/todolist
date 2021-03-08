@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Todo, Profile
+from .models import Todo, Profile, Contact
 
 @admin.register(Todo)
 class TodoAdmin(admin.ModelAdmin):
@@ -9,4 +9,4 @@ class TodoAdmin(admin.ModelAdmin):
 	list_editable = ['is_active']
 
 admin.site.register(Profile)
-
+admin.site.register(Contact)

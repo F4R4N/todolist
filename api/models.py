@@ -50,3 +50,10 @@ class Profile(models.Model):
 	def __str__(self):
 		return self.user.username
 
+class Contact(models.Model):
+	name = models.CharField(max_length=20, null=False, blank=False)
+	email = models.EmailField()
+	text = models.TextField()
+
+	def __str__(self):
+		return self.name

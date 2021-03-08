@@ -1,6 +1,6 @@
 from rest_framework import permissions, status, generics
 from rest_framework.response import Response
-from .models import Todo, Profile
+from .models import Todo, Profile, Contact
 from rest_framework.views import APIView
 from .serializer import TodoSerializer, UserSerializer
 from django.contrib.auth.models import User
@@ -12,6 +12,22 @@ class UserView(viewsets.ModelViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
 	permission_classes = (permissions.IsAdminUser, )
+
+
+class ContactView(APIView):
+	permission_classes = (permissions.AllowAny, )
+
+	def post(self, request, format=None):
+		contact = Contact.objects.create(
+			name=request.data['name'],
+			email=request.data['email'],
+			text=request.data['text']
+		)
+		contact.save()
+		return Response(status=status.HTTP_201_CREATED, data={'detail': "created"})
+
+
+
 
 class TodoGetView(generics.ListAPIView):
 	serializer_class = TodoSerializer

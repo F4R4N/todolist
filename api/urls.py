@@ -26,6 +26,7 @@ urlpatterns = [
 	path("todo/edit/<key>", views.TodoUpdateView.as_view()),
 	path("todo/delete/<key>", views.TodoDelView.as_view()),
 	path("user/", include(router.urls)),
+	path('contact/', views.ContactView.as_view()),
 	path('doc/', schema_view.with_ui('swagger', cache_timeout=0), name='schema_swagger_ui')
 
 ]
