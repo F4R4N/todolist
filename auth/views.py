@@ -146,7 +146,7 @@ class ValidateConfirmationCodeView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'session-not-found'})
         if not 'code' in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {"code": "required"}})
-        if not int(request.data['code']) == int(request.session['code']):
+        if not int(request.data['code']) == int(request.session.get('code')):
             return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'wrong-code'})
         return Response(status=status.HTTP_200_OK, data={'key': get_object_or_404(User, username=request.session['user']).profile.key})
 
@@ -155,7 +155,7 @@ class ResetPasswordView(APIView):
     permission_classes = (AllowAny,)
 
     def put(self, request, key, format=None):
-        user = get_object_or_404(User, username=request.session['user'])
+        user = get_object_or_404(User, username=request.session.get('user'))
         if user.profile.key != key:
             return Response(status=status.HTTP_401_UNAUTHORIZED, data={"detail": "unauthorized"})
         if not 'password' and 'again' in request.data:
@@ -164,4 +164,5 @@ class ResetPasswordView(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'not-matched'})
         user.set_password(request.data['password'])
         user.save()
+        request.session.flush()
         return Response(status=status.HTTP_200_OK, data={'detail': 'done'})
