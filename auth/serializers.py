@@ -61,7 +61,7 @@ class UserLoginSerializer(TokenObtainSerializer):
         refresh = self.get_token(self.user)
 
         data['tokens'] = {'refresh': str(refresh), "access": str(refresh.access_token)}
-        data['user'] = {'key': self.user.profile.key, 'username': self.user.username, 'email': self.user.email, 'first_name': self.user.first_name, 'last_name': self.user.last_name, 'image': self.user.profile.image}
+        data['user'] = {'key': self.user.profile.key, 'username': self.user.username, 'email': self.user.email, 'first_name': self.user.first_name, 'last_name': self.user.last_name, 'image': self.user.profile.image.url}
 
 
         return data
