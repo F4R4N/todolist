@@ -6,10 +6,10 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from django.contrib.auth.password_validation import validate_password
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenViewBase
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from django.core.mail import EmailMessage
 from api.models import Profile
 import random
@@ -119,12 +119,12 @@ class ForgotPasswordView(APIView):
 
     def post(self, request, format=None):
         if 'email' not in request.data:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {'email-or-username': 'required'}})
-        user = None
-        if 'email' in request.data:
-            user = get_object_or_404(User, email=request.data['email'])
-        if 'user' in request.data:
-            user = get_object_or_404(User, username=request.data['username'])
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {'email': 'required'}})
+        try:
+            user = User.objects.get(email=request.data["email"])
+        except user.DoesNotExist:
+            return Response(status=status.HTTP_200_OK, data={'detail': "sent"})
+
         mail_subject = 'Reset Your Password'
         server_code = random.randint(10000, 999999)
         name = "user"
@@ -149,7 +149,7 @@ class ValidateConfirmationCodeView(APIView):
         if not int(request.data['code']) == int(request.session.get('code')):
             return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'wrong-code'})
         return Response(status=status.HTTP_200_OK, data={'key': get_object_or_404(User, username=request.session['user']).profile.key})
-
+from django.core.exceptions import ValidationError
 class ResetPasswordView(APIView):
     """ """
     permission_classes = (AllowAny,)
@@ -161,7 +161,12 @@ class ResetPasswordView(APIView):
         if not 'password' and 'again' in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {"password": "required", 'again': 'required'}})
         if request.data['password'] != request.data['again']:
-            return Response(status=status.HTTP_404_NOT_FOUND, data={'detail': 'not-matched'})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {"password": 'not-matched'}})
+        try:
+            validate_password(request.data['password'], user=user)
+        except ValidationError as ex:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": ex})
+
         user.set_password(request.data['password'])
         user.save()
         request.session.flush()
