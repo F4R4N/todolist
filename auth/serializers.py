@@ -13,7 +13,7 @@ from django.contrib.auth.models import update_last_login
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all())])
     password1 = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(write_only=True, required=True, validators=[validate_password])
 
     class Meta:
         model = User
