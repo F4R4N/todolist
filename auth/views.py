@@ -1,17 +1,22 @@
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
+from django.core.validators import validate_email
+
+from api.models import Profile
 from .serializers import RegisterSerializer, UserLoginSerializer
+
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.contrib.auth.password_validation import validate_password
-
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenViewBase
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.core.mail import EmailMessage
-from api.models import Profile
+
+import time
 import random
 
 class RegisterView(generics.CreateAPIView):
@@ -28,9 +33,14 @@ class ChangePasswordView(APIView):
         if request.data['password1'] != request.data['password2']:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'password1': "password fields dont match !"})
         if not user.check_password(request.data['old_password']):
-            return Response(status=status.HTTP_403_FORBIDDEN, data={"old_password": "Old password is not correct !"})
+            return Response(status=status.HTTP_403_FORBIDDEN, data={"old_password": "old password is not correct !"})
         if user.profile.key != key:
             return Response(status=status.HTTP_401_UNAUTHORIZED, data={"authorize": "You dont have permission for this user !"})
+        try:
+            validate_password(request.data['password1'], user=user)
+        except ValidationError as ex:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": {"password": ex}})
+
         instance = User.objects.get(profile__key=key)
         instance.set_password(request.data['password1'])
         instance.save()
@@ -52,6 +62,10 @@ class UpdateProfileView(generics.UpdateAPIView):
         elif 'email' in request.data:
             if User.objects.exclude(profile__key=user.profile.key).filter(email=request.data['email']).exists():
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE, data={"email": "this email is already in use !"})
+            try:
+                validate_email(request.data['email'])
+            except ValidationError as ex:
+                return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": {"email": ex}})
             instance.email = request.data['email']
         elif 'username' in request.data:
             if User.objects.exclude(profile__key=user.profile.key).filter(username=request.data['username']).exists():
@@ -121,17 +135,21 @@ class ForgotPasswordView(APIView):
         if 'email' not in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {'email': 'required'}})
         try:
+            validate_email(request.data['email'])
+        except ValidationError:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": {"email": "enter a valid email address!"}})
+        try:
             user = User.objects.get(email=request.data["email"])
-        except user.DoesNotExist:
+        except User.DoesNotExist:
+            time.sleep(3)
             return Response(status=status.HTTP_200_OK, data={'detail': "sent"})
-
         mail_subject = 'Reset Your Password'
         server_code = random.randint(10000, 999999)
+        print(server_code)
         name = "user"
         if not user.first_name == "":
             name = user.first_name
         message = 'Hi {0},\nthis is your email confirmation code:\n{1}'.format(name, server_code)
-            
         to_email = user.email
         send_email = EmailMessage(mail_subject, message, to=[to_email]).send()
         request.session['code'] = server_code
@@ -149,7 +167,6 @@ class ValidateConfirmationCodeView(APIView):
         if not int(request.data['code']) == int(request.session.get('code')):
             return Response(status=status.HTTP_403_FORBIDDEN, data={'detail': 'wrong-code'})
         return Response(status=status.HTTP_200_OK, data={'key': get_object_or_404(User, username=request.session['user']).profile.key})
-from django.core.exceptions import ValidationError
 class ResetPasswordView(APIView):
     """ """
     permission_classes = (AllowAny,)
@@ -160,12 +177,12 @@ class ResetPasswordView(APIView):
             return Response(status=status.HTTP_401_UNAUTHORIZED, data={"detail": "unauthorized"})
         if not 'password' and 'again' in request.data:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {"password": "required", 'again': 'required'}})
-        if request.data['password'] != request.data['again']:
+        if request.data["password"] != request.data['again']:
             return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': {"password": 'not-matched'}})
         try:
             validate_password(request.data['password'], user=user)
         except ValidationError as ex:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": ex})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={"detail": {"password": ex}})
 
         user.set_password(request.data['password'])
         user.save()
