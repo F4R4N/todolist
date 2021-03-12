@@ -145,7 +145,6 @@ class ForgotPasswordView(APIView):
             return Response(status=status.HTTP_200_OK, data={'detail': "sent"})
         mail_subject = 'Reset Your Password'
         server_code = random.randint(10000, 999999)
-        print(server_code)
         name = "user"
         if not user.first_name == "":
             name = user.first_name
