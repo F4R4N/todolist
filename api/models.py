@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from datetime import datetime
 import random
 import string
-from datetime import datetime
 def todo_image(instance, filename):
 	return "todo/{0}/{1}.jpg".format(instance.user.username, instance.title)
 
