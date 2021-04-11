@@ -1,6 +1,10 @@
 from django.urls import path
-from auth.views import RegisterView, ChangePasswordView, UpdateProfileView, LogoutView, UpdateUserImageView, DeleteProfileView, ForgotPasswordView, ValidateConfirmationCodeView, ResetPasswordView, UserLoginView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from auth.views import (
+    RegisterView, ChangePasswordView, UpdateProfileView, LogoutView,
+    UpdateUserImageView, DeleteProfileView, ForgotPasswordView,
+    ValidateConfirmationCodeView, ResetPasswordView, UserLoginView)
+
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='auth_register'),
