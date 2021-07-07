@@ -82,7 +82,8 @@ class TodoUpdateView(APIView):
 		else:
 			return Response(
 				data={"detail": "all fields was empty"},
-				status=status.HTTP_400_BAD_REQUEST)
+				status=status.HTTP_400_BAD_REQUEST
+			)
 
 		todo.save()
 		return Response(data={"detail": "updated"}, status=status.HTTP_200_OK)

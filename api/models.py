@@ -29,18 +29,21 @@ class Todo(models.Model):
 		('low', "Low"),
 	]
 	key = models.CharField(
-		max_length=15, default=random_key, unique=True, blank=False, null=False)
+		max_length=15, default=random_key, unique=True, blank=False, null=False
+	)
 
 	title = models.CharField(max_length=500, null=False, blank=False)
 	description = models.TextField(blank=True, null=True)
 	created = models.DateTimeField(auto_now_add=True)
 	image = models.ImageField(
-		upload_to=todo_image, default='todo/default/default.jpg')
+		upload_to=todo_image, default='todo/default/default.jpg'
+	)
 
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
 	is_active = models.BooleanField(default=True, blank=False, null=False)
 	priority = models.CharField(
-		max_length=6, choices=PRIORITY_CHOICES, default='medium')
+		max_length=6, choices=PRIORITY_CHOICES, default='medium'
+	)
 
 	send_email = models.BooleanField(default=False)
 	is_paused = models.BooleanField(blank=False, null=False)
@@ -54,13 +57,16 @@ class Todo(models.Model):
 
 class Profile(models.Model):
 	key = models.CharField(
-		max_length=15, default=random_key, unique=True, blank=False, null=False)
+		max_length=15, default=random_key, unique=True, blank=False, null=False
+	)
 
 	user = models.OneToOneField(
-		User, on_delete=models.CASCADE, related_name='profile')
+		User, on_delete=models.CASCADE, related_name='profile'
+	)
 
 	image = models.ImageField(
-		upload_to=user_image, default="profile/default/default.jpg")
+		upload_to=user_image, default="profile/default/default.jpg"
+	)
 
 	def __str__(self):
 		return self.user.username

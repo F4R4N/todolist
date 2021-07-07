@@ -34,30 +34,35 @@ class ChangePasswordView(APIView):
         if request.data['password1'] != request.data['password2']:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'password1': "password fields dont match !"})
+                data={'password1': "password fields dont match !"}
+            )
 
         if not user.check_password(request.data['old_password']):
             return Response(
                 status=status.HTTP_403_FORBIDDEN,
-                data={"old_password": "old password is not correct !"})
+                data={"old_password": "old password is not correct !"}
+            )
 
         if user.profile.key != key:
             return Response(
                 status=status.HTTP_401_UNAUTHORIZED,
-                data={"authorize": "You dont have permission for this user !"})
+                data={"authorize": "You dont have permission for this user !"}
+            )
 
         try:
             validate_password(request.data['password1'], user=user)
         except ValidationError as ex:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"detail": {"password": ex}})
+                data={"detail": {"password": ex}}
+            )
 
         instance = User.objects.get(profile__key=key)
         instance.set_password(request.data['password1'])
         instance.save()
         return Response(
-            status=status.HTTP_200_OK, data={"detail": "password changed"})
+            status=status.HTTP_200_OK, data={"detail": "password changed"}
+        )
 
 
 class UpdateProfileView(generics.UpdateAPIView):
@@ -68,7 +73,8 @@ class UpdateProfileView(generics.UpdateAPIView):
         if user.profile.key != key:
             return Response(
                 status=status.HTTP_401_UNAUTHORIZED,
-                data={"authorize": "you dont have permission for this user !"})
+                data={"authorize": "you dont have permission for this user !"}
+            )
 
         instance = User.objects.get(profile__key=key)
         if 'first_name' in request.data:
@@ -79,27 +85,31 @@ class UpdateProfileView(generics.UpdateAPIView):
             if User.objects.exclude(profile__key=user.profile.key).filter(email=request.data['email']).exists():
                 return Response(
                     status=status.HTTP_406_NOT_ACCEPTABLE,
-                    data={"email": "this email is already in use !"})
+                    data={"email": "this email is already in use !"}
+                )
 
             try:
                 validate_email(request.data['email'])
             except ValidationError as ex:
                 return Response(
                     status=status.HTTP_400_BAD_REQUEST,
-                    data={"detail": {"email": ex}})
+                    data={"detail": {"email": ex}}
+                )
 
             instance.email = request.data['email']
         elif 'username' in request.data:
             if User.objects.exclude(profile__key=user.profile.key).filter(username=request.data['username']).exists():
                 return Response(
                     status=status.HTTP_406_NOT_ACCEPTABLE,
-                    data={"username": "this username is not available !"})
+                    data={"username": "this username is not available !"}
+                )
 
             instance.username = request.data['username']
         else:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"detail": "no field modified"})
+                data={"detail": "no field modified"}
+            )
 
         instance.save()
         return Response(status=status.HTTP_200_OK, data={"detail": "updated"})
@@ -128,12 +138,14 @@ class UpdateUserImageView(generics.UpdateAPIView):
             profile.user = user
             profile.save()
             return Response(
-                status=status.HTTP_200_OK, data={"detail": 'modified'})
+                status=status.HTTP_200_OK, data={"detail": 'modified'}
+            )
 
         else:
             return Response(
                 status=status.HTTP_404_NOT_FOUND,
-                data={'detail': {'not-valid': 'the image field data is missing'}})
+                data={'detail': {'not-valid': 'the image field data is missing'}}
+            )
 
 
 class LogoutView(APIView):
@@ -147,12 +159,14 @@ class LogoutView(APIView):
 
             return Response(
                 status=status.HTTP_205_RESET_CONTENT,
-                data={'detail': "logged out"})
+                data={'detail': "logged out"}
+            )
 
         except Exception:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"detail": "refresh_token is not valid"})
+                data={"detail": "refresh_token is not valid"}
+            )
 
 
 class DeleteProfileView(APIView):
@@ -163,17 +177,20 @@ class DeleteProfileView(APIView):
         if user.profile.key != key:
             return Response(
                 data={"detail": "unauthorized"},
-                status=status.HTTP_401_UNAUTHORIZED)
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
         if 'password' not in request.data:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'detail': 'password-required'})
+                data={'detail': 'password-required'}
+            )
 
         if not user.check_password(request.data['password']):
             return Response(
                 status=status.HTTP_403_FORBIDDEN,
-                data={'detail': "password-incorrect"})
+                data={'detail': "password-incorrect"}
+            )
 
         user.is_active = False
         user.save()
@@ -187,14 +204,16 @@ class ForgotPasswordView(APIView):
         if 'email' not in request.data:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'detail': {'email': 'required'}})
+                data={'detail': {'email': 'required'}}
+            )
 
         try:
             validate_email(request.data['email'])
         except ValidationError:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"detail": {"email": "enter a valid email address!"}})
+                data={"detail": {"email": "enter a valid email address!"}}
+            )
 
         try:
             user = User.objects.get(email=request.data["email"])
@@ -221,23 +240,26 @@ class ValidateConfirmationCodeView(APIView):
         if 'code' not in request.session and 'user' not in request.session:
             return Response(
                 status=status.HTTP_404_NOT_FOUND,
-                data={'detail': 'session-not-found'})
+                data={'detail': 'session-not-found'}
+            )
 
         if 'code' not in request.data:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'detail': {"code": "required"}})
+                data={'detail': {"code": "required"}}
+            )
 
         if not int(request.data['code']) == int(request.session.get('code')):
             return Response(
                 status=status.HTTP_403_FORBIDDEN,
-                data={'detail': 'wrong-code'})
+                data={'detail': 'wrong-code'}
+            )
         user_key = get_object_or_404(User, username=request.session['user']).profile.key
         return Response(status=status.HTTP_200_OK, data={'key': user_key})
 
 
 class ResetPasswordView(APIView):
-    """ """
+    """  """
     permission_classes = (AllowAny,)
 
     def put(self, request, key, format=None):
@@ -245,24 +267,28 @@ class ResetPasswordView(APIView):
         if user.profile.key != key:
             return Response(
                 status=status.HTTP_401_UNAUTHORIZED,
-                data={"detail": "unauthorized"})
+                data={"detail": "unauthorized"}
+            )
 
         if not 'password' and 'again' in request.data:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'detail': {"password": "required", 'again': 'required'}})
+                data={'detail': {"password": "required", 'again': 'required'}}
+            )
 
         if request.data["password"] != request.data['again']:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={'detail': {"password": 'not-matched'}})
+                data={'detail': {"password": 'not-matched'}}
+            )
 
         try:
             validate_password(request.data['password'], user=user)
         except ValidationError as ex:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
-                data={"detail": {"password": ex}})
+                data={"detail": {"password": ex}}
+            )
 
         user.set_password(request.data['password'])
         user.save()

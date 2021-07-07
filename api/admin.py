@@ -15,5 +15,4 @@ class ContactAdmin(admin.ModelAdmin):
 	list_display = ('name', 'email', 'text')
 	search_fields = ('name', 'email', 'text')
 
-
 admin.site.register(Profile)

@@ -11,19 +11,23 @@ from rest_framework_simplejwt.serializers import TokenObtainSerializer
 class RegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())])
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
 
     password1 = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password])
+        write_only=True, required=True, validators=[validate_password]
+    )
 
     password2 = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password])
+        write_only=True, required=True, validators=[validate_password]
+    )
 
     class Meta:
         model = User
         fields = (
             'username', 'password1', 'password2', 'email', 'first_name',
-            'last_name')
+            'last_name'
+        )
 
         extra_kwargs = {
             'first_name': {'required': False},
@@ -33,7 +37,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password1'] != attrs['password2']:
             raise serializers.ValidationError(
-                {'password1': "password field dont match !"})
+                {'password1': "password field dont match !"}
+            )
 
         return attrs
 
@@ -71,7 +76,8 @@ class UserLoginSerializer(TokenObtainSerializer):
 
         data['tokens'] = {
             'refresh': str(refresh),
-            "access": str(refresh.access_token)}
+            "access": str(refresh.access_token),
+        }
 
         data['user'] = {
             'key': self.user.profile.key,
@@ -79,6 +85,7 @@ class UserLoginSerializer(TokenObtainSerializer):
             'email': self.user.email,
             'first_name': self.user.first_name,
             'last_name': self.user.last_name,
-            'image': self.user.profile.image.url}
+            'image': self.user.profile.image.url,
+        }
 
         return data
