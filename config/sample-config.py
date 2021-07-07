@@ -1,0 +1,11 @@
+CONFIG_EMAIL =  "example@gmail.com"
+CONFIG_PASSWORD = "password"
+CONFIG_SMTP = "smtp.google.com"
+CONFIG_SECRET_KEY = "some_secret_key"
+CONFIG_DEBUG = True
+CONFIG_ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+DB = "db_name"
+DB_USER = "db_user"
+DB_PASSWORD = "db_password"
+DB_HOST = "db_host"
+DB_PORT = "db_port"
