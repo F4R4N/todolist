@@ -11,3 +11,5 @@ config/__pycache__/
 test*
 # test config file
 config/config.py
+# vscode
+todolist.code-workspace
