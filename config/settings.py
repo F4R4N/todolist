@@ -1,24 +1,37 @@
 from pathlib import Path
 import os
 from datetime import timedelta
-from .config import EMAIL, PASSWORD, SMTP
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+
+try:
+    from .config import (CONFIG_EMAIL, CONFIG_PASSWORD, CONFIG_SMTP,
+        CONFIG_SECRET_KEY, CONFIG_DEBUG, CONFIG_ALLOWED_HOSTS, DB, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT,
+    )
+except ImportError:
+    # email configs
+    CONFIG_EMAIL = os.environ.get("CONFIG_EMAIL")
+    CONFIG_PASSWORD = os.environ.get("CONFIG_EMAIL_PASSWORD")
+    CONFIG_SMTP = os.environ.get("CONFIG_EMAIL_SMTP")
+    # django configs
+    CONFIG_SECRET_KEY = os.environ.get("CONFIG_SECRET_KEY", "secret-key")
+    CONFIG_DEBUG = int(os.environ.get("CONFIG_DEBUG", 1))
+    CONFIG_ALLOWED_HOSTS = os.environ.get("CONFIG_ALLOWED_HOSTS", []).split(", ")
+    # db config
+    DB = os.environ.get("DB")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASSWORD = os.environ.get("DB_PASSWORD")
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_PORT = os.environ.get("DB_PORT")
+
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_KEY = CONFIG_SECRET_KEY
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
+DEBUG = CONFIG_DEBUG
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5edi!izj7&k%%h9**rc##g_mnmqxfk&u@5z!y!g9ivjhfxow7h'
+ALLOWED_HOSTS = CONFIG_ALLOWED_HOSTS
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -72,8 +85,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': DB,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
 
@@ -137,13 +154,13 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 
 EMAIL_USE_TLS = True
-EMAIL_HOST = SMTP
+EMAIL_HOST = CONFIG_SMTP
 EMAIL_PORT = 587
-EMAIL_HOST_USER = EMAIL
-EMAIL_HOST_PASSWORD = PASSWORD
+EMAIL_HOST_USER = CONFIG_EMAIL
+EMAIL_HOST_PASSWORD = CONFIG_PASSWORD
 
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
@@ -154,5 +171,4 @@ SWAGGER_SETTINGS = {
             'in': 'header'
         }
     }
-
 }
