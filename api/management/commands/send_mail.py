@@ -1,10 +1,9 @@
 from django.core.mail import send_mail
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.utils import timezone
 from api.models import Todo
-from django.conf import settings
-import datetime
-import os
+
+
 class Command(BaseCommand):
 	def handle(self, *args, **options):
 		try:

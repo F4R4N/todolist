@@ -56,7 +56,7 @@ class TodoCreateView(APIView):
 			is_visible=request.data['is_visible'],
 			date=request.data['date'],
 			time=request.data['time']
-			)
+		)
 		todo.save()
 		return Response(data={"detail": "created"}, status=status.HTTP_200_OK)
 
