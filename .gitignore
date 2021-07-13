@@ -13,3 +13,4 @@ test*
 config/config.py
 # vscode
 todolist.code-workspace
+.vscode/
