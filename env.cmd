@@ -10,3 +10,4 @@ SET DB_USER=db_user
 SET DB_PASSWORD=db_password
 SET DB_HOST=db_host
 SET DB_PORT=db_port
+echo "all environment variables set"
