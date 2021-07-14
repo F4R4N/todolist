@@ -9,7 +9,7 @@ SECRET_KEY = os.environ.get("CONFIG_SECRET_KEY")
 
 DEBUG = bool(int(os.environ.get("CONFIG_DEBUG", 1)))
 
-ALLOWED_HOSTS = os.environ.get("CONFIG_ALLOWED_HOSTS", []).split(", ")
+ALLOWED_HOSTS = os.environ.get("CONFIG_ALLOWED_HOSTS", "").split(", ")
 
 
 INSTALLED_APPS = [
