@@ -270,7 +270,7 @@ class ResetPasswordView(APIView):
                 data={"detail": "unauthorized"}
             )
 
-        if not 'password' and 'again' in request.data:
+        if not 'password' in request.data and not 'again' in request.data:
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={'detail': {"password": "required", 'again': 'required'}}
