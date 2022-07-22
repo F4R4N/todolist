@@ -239,7 +239,7 @@ class ValidateConfirmationCodeView(APIView):
     def post(self, request, format=None):
         if 'code' not in request.session and 'user' not in request.session:
             return Response(
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_400_BAD_REQUEST,
                 data={'detail': 'session-not-found'}
             )
 
